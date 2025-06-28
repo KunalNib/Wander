@@ -1,0 +1,147 @@
+<% layout("/layouts/boilerplate")%>
+<body>
+  <div class="row mt-3">
+    <div class="col-8 offset-2">
+      <h3><%=data.title%></h3>
+    </div>
+    <div
+      class="card col-8 col-lg-6 col-md-8 col-sm-6 offset-2 show-card listing-card"
+    >
+      <img
+        src="<%= data.image.url%>"
+        class="card-img-top show-img"
+        alt="listing_image"
+      />
+      <div class="card-body">
+        <p class="card-text mt-2">Owned By : <i><%=data.owner.username%></i></p>
+        <p class="card-text"><%=data.description%></p>
+        <p class="card-text">&#8377;<%=data.price.toLocaleString("en-IN")%></p>
+        <p class="card-text"><%=data.location%></p>
+        <p class="card-text"><%=data.country%></p>
+      </div>
+    </div>
+  </div>
+
+  <br />
+  <%if(currUser && currUser._id.equals(data.owner._id)){%>
+  <div class="btns">
+    <a href="/listings/<%=data.id%>/edit" class="btn btn-dark col-md-1 offset-2"
+      >Edit</a
+    >
+    <form method="post" action="/listings/<%=data.id%>?_method=DELETE">
+      <button class="btn btn-danger offset-4">Delete</button>
+    </form>
+  </div>
+  <%}%>
+  <hr />
+  <div class="col-8 mb-3 mt-3"></div>
+  <% if(currUser) {%>
+  <h4>Leave a Review</h4>
+  <form
+    method="post"
+    action="/listings/<%=data.id%>/reviews"
+    class="needs-validation"
+    novalidate
+  >
+    <div class="col-8 offset-1 col mb-3 mt-3">
+      <label for="rating" class="form-label">Rating</label>
+
+      <fieldset class="starability-slot">
+        <input
+          type="radio"
+          id="no-rate"
+          class="input-no-rate"
+          name="review[rating]"
+          value="1"
+          checked
+          aria-label="No rating."
+        />
+        <input type="radio" id="first-rate1" name="review[rating]" value="1" />
+        <label for="first-rate1" title="Terrible">1 star</label>
+        <input type="radio" id="first-rate2" name="review[rating]" value="2" />
+        <label for="first-rate2" title="Not good">2 stars</label>
+        <input type="radio" id="first-rate3" name="review[rating]" value="3" />
+        <label for="first-rate3" title="Average">3 stars</label>
+        <input type="radio" id="first-rate4" name="review[rating]" value="4" />
+        <label for="first-rate4" title="Very good">4 stars</label>
+        <input type="radio" id="first-rate5" name="review[rating]" value="5" />
+        <label for="first-rate5" title="Amazing">5 stars</label>
+      </fieldset>
+    </div>
+    <div class="col-8 offset-1 mb-3 mt-3">
+      <label for="comment" class="form-label">Comment</label>
+      <textarea
+        cols="30"
+        rows="5"
+        id="comment"
+        name="review[comment]"
+        class="form-control"
+        required
+      ></textarea>
+      <div class="invalid-feedback">Please write comment</div>
+    </div>
+    <button class="btn btn-outline-dark mb-3 mt-3 offset-1">Submit</button>
+  </form>
+  <hr />
+  <%}%> <%if(data.reviews.length) {%>
+  <h4>All Review</h4>
+  <div class="row offset-1">
+    <%for(review of data.reviews){%>
+    <div class="card col-md-5 col-sm-5 col-8 col-lg-3 ms-3 mb-3 mt-3 pt-3 pb-3">
+      <div class="card-body">
+        <p class="starability-result" data-rating="<%=review.rating%>"></p>
+        <h5 class="card-title">@<%=review.author.username%></h5>
+        <p class="card-text"><%=review.comment%></p>
+        <p class="card-text"><%=review.rating%> stars</p>
+
+        <%if(currUser && currUser._id.equals(review.author._id)){%>
+        <form
+          method="post"
+          class="mb-3"
+          action="/listings/<%=data.id%>/reviews/<%=review.id%>?_method=DELETE"
+        >
+          <button class="btn btn-sm btn-dark">Delete</button>
+        </form>
+        <%}%>
+      </div>
+    </div>
+    <%}%>
+    <hr class="col-10" />
+    <%}%>
+  </div>
+
+  <div class="row mb-5">
+    <h4 class="col-8 offset-1">Where you will be :</h4>
+    <div class="col-8 offset-2">
+      <div id="map"></div>
+    </div>
+  </div>
+
+ <script>
+  const coordinates = <%- JSON.stringify(data.geometry.coordinates) %>; // NOW a real JS array
+  const title = "<%- data.title %>";
+
+  if (coordinates && coordinates.length === 2) {
+    const lon = coordinates[0];
+    const lat = coordinates[1];
+
+    const map = L.map("map").setView([lat, lon], 13);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; OpenStreetMap contributors",
+    }).addTo(map);
+
+    L.marker([lat, lon])
+      .addTo(map)
+      .bindPopup(title)
+      .openPopup();
+
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 300);
+  } else {
+    alert("Coordinates not found for this listing.");
+  }
+</script>
+
+</body>

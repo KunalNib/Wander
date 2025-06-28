@@ -1,0 +1,55 @@
+<% layout("/layouts/boilerplate")%>
+<body>
+    <h3>Add Details</h3>
+    <form method="post" action="/listings"  class="needs-validation" novalidate enctype="multipart/form-data">
+        <div class="mb-3">
+             <label for="title" class="form-label">Title :</label>
+            <input name="title" placeholder="Enter title" class="form-control" id="title" required>
+            <div class="invalid-feedback">
+            Please enter the title!
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="description" class="form-label">Description :</label><br>
+            <textarea name="description" class="form-control" id="description"  required></textarea>
+            <div class="invalid-feedback">
+                Description Required
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="image" class="form-label">Upload Image</label>
+            <input name="image" type="file" class="form-control" id="image"  placeholder="Enter image Url " required>
+            <div class="invalid-feedback">
+                Please upload image
+            </div>
+        </div>
+        <div class="row">
+            <div class="mb-3 col-md-4" >
+            <label for="price" class="form-label">Price :</label>
+            <input type="number" name="price"  class="form-control" placeholder="Enter price" required>
+            <div class="invalid-feedback">
+                Please enter a valid price!
+            </div>
+            </div>
+            <div class="mb-3 col-md-8">
+                <label class="form-label" for="country">Country :</label>
+            <input name="country" id="country" class="form-control" placeholder="Enter country" required>
+            <div class="invalid-feedback">
+                Please enter the country!
+            </div>
+        </div>
+        </div>
+
+        <div class="mb-3">
+            
+            <label class="form-label" for="location">Location :</label>
+            <p>The map/location feature is in development so please set the location as " city , state"</p>
+        <input name="location" id="location" class="form-control" placeholder="e.g jaipur,rajasthan" required>
+        <div class="invalid-feedback">
+                Please Enter the location!
+            </div>
+        </div>
+        <br>
+        <button class="btn btn-dark add-btn">Add</button>
+    </form>
+</body>
