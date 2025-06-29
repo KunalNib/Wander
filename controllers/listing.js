@@ -42,8 +42,29 @@ module.exports.putEdit = async (req, res, next) => {
 
     // Update coordinates if location or country changed
     const locationQuery = `${data.location}, ${data.country}`;
-    const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationQuery)}`);
-    const geoData = await geoRes.json();
+
+    const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationQuery)}`, {
+      headers: {
+        'User-Agent': 'WanderLustApp/1.0 (kunal@example.com)' // Replace with your email/project info
+      }
+    });
+
+    // Handle non-200 response (like 403, 500, etc.)
+    if (!geoRes.ok) {
+      const errorText = await geoRes.text();
+      console.error("Nominatim error response:", errorText.slice(0, 200));
+      req.flash("error", "Failed to update coordinates. Geocoding service error.");
+      return res.redirect(`/listings/${id}/edit`);
+    }
+
+    let geoData;
+    try {
+      geoData = await geoRes.json();
+    } catch (err) {
+      console.error("Nominatim invalid JSON:", err);
+      req.flash("error", "Geocoding service returned an invalid response.");
+      return res.redirect(`/listings/${id}/edit`);
+    }
 
     if (geoData.length > 0) {
       const lat = parseFloat(geoData[0].lat);
@@ -58,9 +79,11 @@ module.exports.putEdit = async (req, res, next) => {
     req.flash("success", "Listing Updated!");
     res.redirect(`/listings/${id}`);
   } catch (err) {
+    console.error("Error in putEdit route:", err);
     next(err);
   }
 };
+
 
 
 module.exports.newRoute=(req,res)=>{
@@ -84,13 +107,36 @@ module.exports.newPostRoute = async (req, res, next) => {
     const locationQuery = `${data.location}, ${data.country}`;
 
     // Fetch coordinates from Nominatim
-    const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationQuery)}`);
-    const geoData = await geoRes.json();
+    const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationQuery)}`, {
+  headers: {
+    'User-Agent': 'WanderLustApp/1.0 (kunal@example.com)' // ← use your email or project name
+  }
+});
 
-    if (!geoData.length) {
-      req.flash("error", "Location not found");
-      return res.redirect("/listings/new");
-    }
+// Check if response is OK (status 200-299)
+if (!geoRes.ok) {
+  const errorText = await geoRes.text();
+  console.error("Nominatim responded with error HTML:", errorText.slice(0, 200)); // Show partial HTML
+  req.flash("error", "Geocoding failed. Please try again later.");
+  return res.redirect("/listings/new");
+}
+
+// Try parsing JSON safely
+let geoData;
+try {
+  geoData = await geoRes.json();
+} catch (err) {
+  console.error("Error parsing Nominatim JSON:", err);
+  req.flash("error", "Invalid response from geocoding service.");
+  return res.redirect("/listings/new");
+}
+
+// Check if location was found
+if (!geoData.length) {
+  req.flash("error", "Location not found");
+  return res.redirect("/listings/new");
+}
+
 
     const lat = parseFloat(geoData[0].lat);
     const lon = parseFloat(geoData[0].lon);
