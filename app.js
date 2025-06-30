@@ -62,7 +62,7 @@ const sessionOptions={
 
 
 
-app.use(session(sessionOptions,));
+app.use(session(sessionOptions));
 
 app.use(passport.initialize());
 app.use(passport.session());
