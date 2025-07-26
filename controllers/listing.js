@@ -33,23 +33,20 @@ module.exports.putEdit = async (req, res, next) => {
 
     const listing = await Listing.findByIdAndUpdate(id, { ...data }, { new: true });
 
-    // Update image if changed
     if (req.file) {
       const url = req.file.path;
       const filename = req.file.filename;
       listing.image = { url, filename };
     }
 
-    // Update coordinates if location or country changed
     const locationQuery = `${data.location}, ${data.country}`;
 
     const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationQuery)}`, {
       headers: {
-        'User-Agent': 'WanderLustApp/1.0 (kunal@example.com)' // Replace with your email/project info
+        'User-Agent': 'WanderLustApp/1.0 (kunal@example.com)' 
       }
     });
 
-    // Handle non-200 response (like 403, 500, etc.)
     if (!geoRes.ok) {
       const errorText = await geoRes.text();
       console.error("Nominatim error response:", errorText.slice(0, 200));
@@ -103,25 +100,23 @@ module.exports.newPostRoute = async (req, res, next) => {
     const filename = req.file.filename;
     const data = req.body;
 
-    // Build location query string
     const locationQuery = `${data.location}, ${data.country}`;
 
-    // Fetch coordinates from Nominatim
     const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationQuery)}`, {
   headers: {
-    'User-Agent': 'WanderLustApp/1.0 (kunal@example.com)' // ← use your email or project name
+    'User-Agent': 'WanderLustApp/1.0 (kunal@example.com)' 
   }
 });
 
-// Check if response is OK (status 200-299)
+
 if (!geoRes.ok) {
   const errorText = await geoRes.text();
-  console.error("Nominatim responded with error HTML:", errorText.slice(0, 200)); // Show partial HTML
+  console.error("Nominatim responded with error HTML:", errorText.slice(0, 200)); 
   req.flash("error", "Geocoding failed. Please try again later.");
   return res.redirect("/listings/new");
 }
 
-// Try parsing JSON safely
+
 let geoData;
 try {
   geoData = await geoRes.json();
@@ -131,7 +126,6 @@ try {
   return res.redirect("/listings/new");
 }
 
-// Check if location was found
 if (!geoData.length) {
   req.flash("error", "Location not found");
   return res.redirect("/listings/new");
@@ -145,7 +139,7 @@ if (!geoData.length) {
       ...data,
       geometry: {
         type: "Point",
-        coordinates: [lon, lat], // GeoJSON format: [longitude, latitude]
+        coordinates: [lon, lat], 
       },
       owner: req.user._id,
       image: { url, filename }
